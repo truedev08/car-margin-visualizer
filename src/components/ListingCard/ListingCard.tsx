@@ -7,24 +7,45 @@ interface ListingCardProps {
 export default function ListingCard(props: ListingCardProps) {
   const rowData = Object.entries(props.csvRow).map(
     ([key, value]: [string, any], index) => {
+      // Regular expression to detect URLs starting with "http://" or "https://"
+      const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+
+      let displayedValue: React.ReactNode;
+      let backgroundColor: string | undefined;
+      let textColor: string | undefined;
+
+      if (typeof value === "string" && urlRegex.test(value)) {
+        // If the value is a URL, make it a clickable link
+        displayedValue = (
+          <a href={value} target="_blank" rel="noopener noreferrer">
+            {value}
+          </a>
+        );
+      } else {
+        // Otherwise, display the value as text
+        displayedValue = value;
+      }
+
+      if (key === "Potential") {
+        // Check if the key is "Potential" and apply red or green background based on the value
+        const potentialValue = parseFloat(value);
+        const isNegative = potentialValue < 0;
+        backgroundColor = isNegative ? "red" : "green";
+        textColor = "white"; // Set the text color to white
+      }
+
+      const style = {
+        backgroundColor,
+        color: textColor,
+      };
+
       return (
-        <li className="car-data" key={index}>
-          <strong>{key}:</strong> {value}
+        <li className="car-data" key={index} style={style}>
+          <strong>{key}:</strong> {displayedValue}
         </li>
       );
     }
   );
 
-  return (
-    <ul className="ListingCard">
-      {rowData}
-      {/* <p>Potential: {props.csvRow["Potential"]}</p>
-      <p>Body type: {props.csvRow["Body type"]}</p>
-      <p>Make: {props.csvRow.make}</p>
-      <p>Build Year: {props.csvRow.buildYear}</p>
-      <p>Fuel: {props.csvRow.fuel}</p>
-      <p>Gearbox: {props.csvRow.gearbox}</p>
-      <p>Price: {props.csvRow.price}</p> */}
-    </ul>
-  );
+  return <ul className="ListingCard">{rowData}</ul>;
 }
